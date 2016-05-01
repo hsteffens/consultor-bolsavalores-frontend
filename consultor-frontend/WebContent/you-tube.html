@@ -1,0 +1,70 @@
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/google-youtube/google-youtube.html">
+
+<dom-module id="you-tube">
+  <template id="you-tube">
+    <style>
+      div {
+        margin-bottom: 1em;
+		.text_line { clear:both; margin-bottom:2px; }
+      }
+	</style>
+    </style>
+    <div>
+   <google-youtube
+	  video-id={{id}}
+	  height="480px"
+	  width="670px"
+	  rel="0"
+	  start="0"
+	  autoplay="1">
+</google-youtube>
+</div>
+  </template>
+</dom-module>
+<script>
+  Polymer({
+    is: 'you-tube',
+    properties: {
+      id: {
+          type: String,
+          value: "vkJ5Lc0WwVw"
+      },
+      playSupported: Boolean,
+      state: String,
+      currentTime: Number,
+      currentTimeFormatted: String,
+      duration: Number,
+      durationFormatted: String,
+      fractionLoaded: Number,
+      events: {
+        type: Array,
+        value: []
+      }
+    },
+    computeProgress: function(currentTime, duration) {
+      return currentTime / duration;
+    },
+    computePlayDisabled: function(state, playSupported) {
+      return state == 1 || state == 3 || !playSupported;
+    },
+    computePauseDisabled: function(state) {
+      return state != 1 && state != 3;
+    },
+    handleStateChange: function(ev) {
+      this.events.push({data: ev.detail.data});
+    },
+    handleYouTubeError: function(ev) {
+      console.error('YouTube playback error', ev.detail);
+    },
+    handlePlayVideo: function(ev) {
+      this.$.googleYouTube.play();
+    },
+    handlePauseVideo: function(ev) {
+      this.$.googleYouTube.pause();
+    },
+    handleCueVideo: function(ev) {
+      this.$.googleYouTube.videoId = this.$.videoId.value;
+    }
+  });
+</script>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+
+<title>Consultoria Bolsa Valores</title>
+
+<script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+<script src="bower_components/angular/angular.min.js"></script>
+<script src="bower_components/ng-polymer-elements/ng-polymer-elements.js"></script>
+
+<link rel="import" href="bower_components/paper-styles/demo-pages.html">
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="bower_components/paper-input/paper-input.html">
+
+<link rel="import" href="you-tube.html">
+
+<style>
+body {
+	background: url("images/planefin.jpg") no-repeat center center fixed;
+	-webkit-background-size: cover;
+	-moz-background-size: cover;
+	-o-background-size: cover;
+	background-size: cover;
+}
+
+.posicionamento {
+	float: left;
+	margin: 5px;
+}
+
+:host {
+	display: block;
+	position: relative;
+	padding: 1em 0;
+}
+
+.paper {
+	background: #4285f4;
+	color: #fff;
+}
+</style>
+<script>
+	function setValue(){
+		alert('ddddd');
+	}
+</script>
+</head>
+<body>
+	<div ng-app="" ng-init="firstName='John'">
+	<div class="posicionamento">
+		<div class="horizontal-section-container">
+			<div>
+				<div class="horizontal-section">
+					<paper-input-container id="user">
+					   <label>User name</label> +
+					   <input is= "iron-input" bind-value = "{{username}}" ng-model="username">
+					   </input>
+					</paper-input-container>
+					
+					<paper-input-container id="password">
+					   <label>Password</label> +
+					   <input is= "iron-input" type="password" bind-value = "{{password}}" ng-model="password">
+					   </input>
+					</paper-input-container>
+					
+					<br>
+					
+					<paper-button class="paper" onclick="addNewFeature(this)" raised ng-controller="myCtrl">Login</paper-button>
+					<paper-button class="paper" raised>Cancel</paper-button>
+
+					<script>
+						var app = angular.module('', []);
+						app.controller('myCtrl', function($scope) {
+						    $scope.name = "John Doe";
+						});
+						function addNewFeature(el) {
+						  // Wait for ripple to finish.
+						  el.addEventListener('transitionend', function(e) {
+							  var form = document.createElement('form');
+							    form.method = 'post';
+							    form.action = '/login/username=\'dsfhdsfuhdsf\'/password=122';
+							    form.submit();
+// 						    location.href = '/admin/features/new';
+						  });
+						}
+					</script>
+					
+				</div>
+			</div>
+		</div>
+	</div>
+<!-- 	  <div class="posicionamento">  -->
+<!-- 		 <you-tube id="cwNQcPSRRWs"></you-tube> -->
+<!-- 	</google-youtube> -->
+<!-- 	</div> -->
+	<div>
+		<p>You wrote: {{ username }} and {{ password }}</p>
+	</div>
+</body>
+</html>
