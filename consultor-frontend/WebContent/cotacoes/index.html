@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport"
+	content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+
+<title>Consultoria Bolsa Valores</title>
+
+<script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+<link rel="import" href="../top-view/top-view.html">
+	
+	<style is="custom-style">
+
+		.horizontal-section {
+			text-align: left;
+			min-width: 260px;
+			min-height: 30px;
+			-webkit-transform-origin: left center;
+      		transform-origin: left center;
+      		 color: #000000;
+		}
+	</style>
+</head>
+<body>
+	<top-view></top-view>
+	<br/>
+		<div id="user" style="width: 80%; margin-left: auto; margin-right: auto;">
+		<h2>Box de Cota&ccedil;&otilde;es</h2>
+			<div class="horizontal-section" style="height: 250px;">
+		  		<script type="text/javascript" src="https://d33t3vvu2t2yu5.cloudfront.net/tv.js"></script>
+				<script type="text/javascript">
+				new TradingView.widget({
+				  "autosize": true,
+				  "symbol": "FX:SPX500",
+				  "interval": "5",
+				  "timezone": "Etc/UTC",
+				  "theme": "White",
+				  "style": "1",
+				  "locale": "en",
+				  "toolbar_bg": "#f1f3f6",
+				  "allow_symbol_change": true,
+				  "hideideas": true,
+				  "show_popup_button": true,
+				  "popup_width": "1000",
+				  "popup_height": "650",
+				  "no_referral_id": true
+				});
+				</script>
+				<!-- TradingView Widget END -->
+		  	</div>
+		</div>
+</body>
+</html>

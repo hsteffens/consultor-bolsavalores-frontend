@@ -1,0 +1,165 @@
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/vaadin-grid/vaadin-grid.html">
+
+<dom-module id="carteira-cliente">
+	<template id="carteira-cliente">
+
+	<style>
+	  #sort {
+	    height: 200px;
+	  }
+	  .row::after {
+	    content: "";
+	    clear: both;
+	    display: block;
+		}
+	   [class*="col-"] {
+		    float: left;
+		    padding: 15px;
+		}
+		.col-1 {
+			width: 35%;
+		}
+		.col-2 {
+			width: 25%;
+		}
+		.col-3 {
+			width: 15%;
+		}
+		.col-4 {
+			width: 20%;
+		}
+		paper-button.green {
+		    background-color: var(--paper-green-500);
+		    color: white;
+		    max-width: 300px;
+		}
+		paper-button.red {
+		    background-color: var(--paper-red-500);
+		    color: white;
+		    max-width: 150px;
+		}
+	</style>
+	<div>
+		<paper-input id="filter" label="Filtro por c&oacute;digo de a&ccedil;&atilde;o comprada"></paper-input>
+		<vaadin-grid id="sort">
+			 <table>
+			   <colgroup>
+			     <col name="acao" sortable/>
+			     <col name="quant" sortable/>
+			     <col name="preco" sortable/>
+			   </colgroup>
+			   <thead>
+			    <tr>
+			      <th>C&oacute;digo A&ccedil;&atilde;o</th>
+			      <th>Quantidade</th>
+			      <th>Pre&atilde;o Pago</th>
+			    </tr>
+			    </thead>
+			 </table>
+		</vaadin-grid>
+		<div class="row">
+			<div class="col-1">
+				<paper-input id="acao"  bind-value = "{{acao}}" label="Informe o c&oacute;digo de a&ccedil;&atilde;o comprada" maxlength="6" required>
+						<iron-icon icon="label" prefix></iron-icon>
+				</paper-input>
+			</div>
+			<div class="col-2">
+				<paper-input id="quatindade"  bind-value = "{{quant}}" label="Informe a quantidade comprada" maxlength="4" type="number" required>
+						<iron-icon icon="label" prefix></iron-icon>
+				</paper-input>
+			</div>
+			<div class="col-2">
+				<paper-input id="valor"  bind-value = "{{valor}}" label="Informe o pre&ccedil;o pago por cada a&ccedil;&atilde;o" maxlength="10" type="number" required>
+						<div prefix>$</div>
+				</paper-input>
+			</div>
+		</div>
+		<div class="row">	
+	    	<div class="col-3">
+	    	    <paper-button raised class="custom green"><iron-icon icon="save"></iron-icon>Salvar</paper-button>
+			</div>
+	    	<div class="col-4">
+	    	    <paper-button raised class="custom red" on-click="cancel"><iron-icon icon="cancel"></iron-icon>Cancelar</paper-button>
+			</div>
+		</div>
+	</div>
+	</template>
+</dom-module>
+<script>
+	Polymer({
+		is: 'carteira-cliente',    
+	    cancel: function () {
+	    	this.$.valor.value = "";
+	    	this.$.quatindade.value = "";
+	    	this.$.acao.value = "";
+	    }
+	 });
+  (function() {
+    HTMLImports.whenReady(function() {
+      var grid = document.querySelector('#sort');
+      var filterInput;
+      
+      for (i = 0; i < document.querySelectorAll('paper-input').length; i++) { 
+    	  	if('filter' == document.querySelectorAll('paper-input')[i].id){
+    	  		filterInput = document.querySelectorAll('paper-input')[i];
+    	  	}
+    	}
+      var users = [];
+
+      getJSON('acoes-usuario.json', function(json) {
+        users = JSON.parse(json).result;
+        grid.items = users;
+      });
+
+      grid.addEventListener('sort-order-changed', function() {
+        var sortOrder = grid.sortOrder[0];
+        var sortProperty = grid.columns[sortOrder.column].name;
+        var sortDirection = sortOrder.direction;
+        grid.items.sort(function(a, b) {
+          var res;
+          var path = sortProperty.split('.');
+          for (var i = 0; i < path.length; i++) {
+            a = a[path[i]];
+            b = b[path[i]];
+          }
+          if (!isNaN(a)) {
+            res = parseInt(a, 10) - parseInt(b, 10);
+          } else {
+            res = a.localeCompare(b);
+          }
+
+          if ('desc' === sortDirection) {
+            res *= -1;
+          }
+          return res;
+        });
+      });
+
+      
+      filterInput.addEventListener('value-changed', function() {
+        var filterText = filterInput.value.toLowerCase();
+        grid.items = users.filter(function(val) {
+          if (filterText) {
+            return (val.acao.toLowerCase()).indexOf(filterText) > -1;
+          } else {
+            return true;
+          }
+        });
+      });
+    });
+    
+    function getJSON(file, callback) {
+    	 var rawFile = new XMLHttpRequest();
+         rawFile.overrideMimeType("application/json");
+         rawFile.open("GET", file, true);
+         rawFile.onreadystatechange = function() {
+             if (rawFile.readyState === 4 && rawFile.status == "200") {
+                 callback(rawFile.responseText);
+             }
+         }
+         rawFile.send(null);
+    }
+  })();
+</script>

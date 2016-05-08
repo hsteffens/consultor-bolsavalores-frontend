@@ -1,0 +1,143 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-styles/demo-pages.html">
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+
+<dom-module id="login-view">
+  <template id="login-view">
+	<style>
+	:host {
+		display: block;
+		position: relative;
+		padding: 1em 0;
+	}
+	
+	.paper {
+		background: #4285f4;
+		color: #fff;
+	}
+	
+	  .horizontal-section-container {
+    @apply(--layout-horizontal);
+    @apply(--layout-center);
+/*     @apply(--layout-wrap);  */
+    @apply(--center-justified);
+    
+  }
+
+  .vertical-section-container {
+    @apply(--layout-vertical);
+    @apply(--center-justified);
+
+
+  }
+
+  .horizontal-section {
+    background-color: white;
+    padding: 24px;
+    margin-right: 24px;
+    min-width: 260px; 
+    min-height: 350px;
+    top: 10px;
+    @apply(--shadow-elevation-2dp);
+  }
+
+  .vertical-section {
+    background-color: white;
+    padding: 24px;
+    margin: 0 24px 24px 24px;
+
+    @apply(--shadow-elevation-2dp);
+  }
+	
+	#footer {
+	    background-color:black;
+	    color:white;
+	    clear:both;
+	    text-align:center;
+	   padding:5px;	 	 
+	}
+	
+	a:link {
+    		text-decoration: none;
+			color : white;
+		}
+		
+		a:visited {
+		    text-decoration: none;
+			color : white;
+		}
+		
+		a:active {
+		    color : white;
+		}
+		a:hover{
+		    color : whites;
+		}
+	</style>
+    <div>
+   		<div class="horizontal-section-container">
+			<div>
+				<div class="horizontal-section">
+					<paper-input id="inputusername"  bind-value = "{{username}}" label="User name" maxlength="45" required>User name</paper-input>
+					<br>
+					<paper-input id="inputpassword" bind-value = "{{password}}" type="password" label="Password" maxlength="45" required>Password</paper-input>
+					<br>
+					
+					<paper-button id="login" class="paper" on-click="login" raised>Login</paper-button>
+					<paper-button id="cancel" class="paper" on-click="cancel" raised>Cancel</paper-button>
+					<br>
+					<br>
+					<div id="footer">
+						<paper-button>
+							<iron-icon icon="label-outline" prefix></iron-icon>
+							 <a href="/BolsaValores/user-view/">Create Account</a></paper-button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+  </template>
+</dom-module>
+<script>
+  Polymer({
+    is: 'login-view',
+    login: function () {
+        	this.$.inputpassword.isInvalid  = false;
+    		this.$.inputusername.isInvalid  = false;
+		    var form = document.createElement("form");
+		    form.setAttribute("method", "post");
+		    form.setAttribute("action", "/BolsaValores/feed/");
+			
+		    var person = new Object();
+			person.username = this.username;
+			person.password = this.password;
+		            
+			var hiddenField = document.createElement("input");
+		    hiddenField.setAttribute("type", "hidden");
+		    hiddenField.setAttribute("name", 'person');
+		    hiddenField.setAttribute("value", person);
+	
+		    form.appendChild(hiddenField);
+	
+		    document.body.appendChild(form);
+		    form.submit();
+    },    
+    cancel: function () {
+    	this.$.inputusername.value = "";
+    	this.$.inputpassword.value = "";
+    },
+    setDialog: function (open) {
+        if (open) {
+            var node = document.querySelector('#dialogFeedback');
+            var textnode = document.querySelector("body");
+            textnode.appendChild(node);
+        } else {
+            var node = document.querySelector('#dialogFeedback');
+            var textnode = document.querySelector("my-topnavigation");
+            textnode.appendChild(node);
+        }
+    }
+  });
+</script>

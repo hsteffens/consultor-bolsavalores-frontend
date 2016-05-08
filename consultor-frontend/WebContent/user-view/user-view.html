@@ -1,0 +1,182 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-styles/demo-pages.html">
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/vaadin-combo-box/vaadin-combo-box.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../cpf-input/cpf-input.html">
+
+<dom-module id="user-view">
+  <template id="user-view">
+	<style>
+	:host {
+		display: block;
+		position: relative;
+		padding: 1em 0;
+	}
+	
+	.paper {
+		background: #4285f4;
+		color: #fff;
+	}
+	
+	  .horizontal-section-container {
+    @apply(--layout-horizontal);
+    @apply(--layout-center);
+/*     @apply(--layout-wrap);  */
+    @apply(--center-justified);
+    
+  }
+
+  .vertical-section-container {
+    @apply(--layout-vertical);
+    @apply(--center-justified);
+
+
+  }
+
+  .horizontal-section {
+    background-color: white;
+    padding: 24px;
+    margin-right: 24px;
+    min-width: 260px; 
+    min-height: 350px;
+    top: 10px;
+    @apply(--shadow-elevation-2dp);
+  }
+
+  .vertical-section {
+    background-color: white;
+    padding: 24px;
+    margin: 0 24px 24px 24px;
+
+    @apply(--shadow-elevation-2dp);
+  }
+  paper-input-container{
+  	min-width: 100px;
+  }
+  paper-input{
+    min-width: 100px;
+  }
+  * {
+    box-sizing: border-box;
+	}
+  .row::after {
+	    content: "";
+	    clear: both;
+	    display: block;
+	}
+   [class*="col-"] {
+	    float: left;
+	    padding: 15px;
+	}
+	.col-1 {
+		width: 50%;
+	}
+	.col-2 {
+		width: 15%;
+	}
+	.col-3 {
+		width: 20%;
+	}
+	vaadin-combo-box {
+	    max-width: 300px;
+	}
+	paper-button.green {
+	    background-color: var(--paper-green-500);
+	    color: white;
+	    max-width: 300px;
+	}
+	paper-button.red {
+	    background-color: var(--paper-red-500);
+	    color: white;
+	    max-width: 150px;
+	}
+</style>
+	<div class="row">	
+    	<div class="col-1">
+			<paper-input id="username"  bind-value = "{{username}}" label="User Name" maxlength="60" required>
+				<iron-icon icon="label" prefix></iron-icon>
+			</paper-input>
+		</div>
+		<div class="col-1">
+			<paper-input id="pass" bind-value = "{{password}}" type="password" label="Password" maxlength="45" required>
+				<iron-icon icon="label" prefix></iron-icon>
+			</paper-input>
+		</div>
+	</div>
+    <div class="row">
+    	<div class="col-1">
+	   		<paper-input-container always-float-label auto-validate attr-for-value="cpf">
+	   		<iron-icon icon="label" prefix></iron-icon>
+			  <label>CPF</label>
+			  <cpf-input id="cpf" bind-value = "{{cpf}}" class="paper-input-input"></cpf-input>
+			  <paper-input-error>CPF inv&aacute;lido!</paper-input-error>
+			</paper-input-container>
+		</div>
+    	<div class="col-1">
+			<paper-input id="name"  bind-value = "{{name}}" label="Nome" maxlength="45" required>
+				<iron-icon icon="label" prefix></iron-icon>
+			</paper-input>
+		</div>
+	</div>
+	<div class="row">	
+    	<div class="col-1">
+			<paper-input id="email"  bind-value = "{{email}}" label="Email" maxlength="60" required>
+			<iron-icon icon="mail" prefix></iron-icon></paper-input>
+		</div>
+		<div class="col-1">
+			<paper-input id="prof"  bind-value = "{{profissao}}" label="Profiss&atilde;o" maxlength="80" required>
+				<iron-icon icon="label-outline" prefix></iron-icon>
+			</paper-input>
+		</div>
+	</div>
+	<div class="row">
+    		<div class="col-1">
+    			<vaadin-combo-box
+    		 		id="tipo_transacao"
+    		 		bind-value = "{{transacao}}"
+    		 		label="Perfil de investidor"
+		    		items='["Conservador", "Moderado", "Agressivo"]'
+		  			value="Moderado">
+		  		</vaadin-combo-box>
+			</div>
+			<div class="col-1">
+    			<vaadin-combo-box
+    		 		id="tipo_operacao"
+    		 		bind-value = "{{operacao}}"
+    		 		label="Forma de opera&ccedil;&atilde;o"
+		    		items='["Day Trade", "Swing Trade", "Position Trade", "Buy & Hold"]'
+		  			value="Position Trade">
+		  		</vaadin-combo-box>
+			</div>
+	</div>
+	<div class="row">	
+    	<div class="col-2">
+    	    <paper-button raised class="custom green"><iron-icon icon="save"></iron-icon>Salvar</paper-button>
+		</div>
+    	<div class="col-3">
+    	    <paper-button raised class="custom red" on-click="cancel"><iron-icon icon="cancel"></iron-icon>Cancelar</paper-button>
+		</div>
+	</div>	
+  </template>
+</dom-module>
+<script>
+  Polymer({
+    is: 'user-view',    
+    cancel: function () {
+    	this.$.username.value = "";
+    	this.$.pass.value = "";
+    	this.$.cpf._cpf1 = "";
+    	this.$.cpf._cpf2 = "";
+    	this.$.cpf._cpf3 = "";
+    	this.$.cpf._cpf4 = "";
+    	this.$.name.value = "";
+    	this.$.email.value = "";
+    	this.$.prof.value = "";
+    	this.$.tipo_transacao.value = "";
+    	this.$.tipo_operacao.value = "";
+    }
+  });
+</script>
