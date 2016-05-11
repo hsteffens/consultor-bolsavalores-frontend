@@ -1,3 +1,4 @@
+
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-styles/demo-pages.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
@@ -67,6 +68,11 @@
         border-top: none;
         padding: 8px;
   }
+  paper-button.green {
+		    background-color: var(--paper-green-500);
+		    color: white;
+		    max-width: 300px;
+		}
 </style>
     <div>
    		<div class="horizontal-section-container">
@@ -77,24 +83,23 @@
             <paper-tab>
 				Melhores op&ccedil;&otilde;es para voc&ecirc;
             </paper-tab>
-            <paper-tab>
-            	Melhores op&ccedil;&otilde;es por bolsa
-            </paper-tab>
           </paper-tabs>
 		</div>
           &#013;
               <iron-pages selected="{{selected}}">
 			      <div>
-						<paper-input id="filter" label="Filtro por c&oacute;digo de a&ccedil;&atilde;o comprada"></paper-input>
+						<paper-input id="filter" label="Filtro por c&oacute;digo de a&ccedil;&atilde;o"></paper-input>
 						<vaadin-grid id="sort">
 							 <table>
 							   <colgroup>
+							     <col name="number" width="80"/>
 							     <col name="acao" sortable/>
 							     <col name="preco" sortable/>
 							     <col name="lucro" sortable/>
 							   </colgroup>
 							   <thead>
 							    <tr>
+							      <th>Posi&ccedil;&atilde;o</th>
 							      <th>C&oacute;digo a&ccedil;&atilde;o</th>
 							      <th>Pre&ccedil;o atual por a&ccedil;&atilde;o</th>
 							      <th>Lucro ganho no ano</th>
@@ -103,10 +108,32 @@
 							 </table>
 						</vaadin-grid>
 						<br/>
-						<img src="http://chart.finance.yahoo.com/z?s=GOOG&t=6m&q=c&l=on&z=l&a=m01-01-16,&p=e13,e150"/>
+						<img id="grafico" src=""/>
 				  </div>
-			      <div>CONTENT TWO</div>
-			      <div>CONTENT THREE</div>
+				  <div>
+						<vaadin-grid id="sort_user" selection-mode="multi">
+							 <table>
+							   <colgroup>
+							     <col name="number" width="80"/>
+							     <col name="acao" sortable/>
+							     <col name="preco" sortable/>
+							     <col name="lucro" sortable/>
+							   </colgroup>
+							   <thead>
+							    <tr>
+							      <th>Posi&ccedil;&atilde;o</th>
+							      <th>C&oacute;digo a&ccedil;&atilde;o</th>
+							      <th>Pre&ccedil;o atual por a&ccedil;&atilde;o</th>
+							      <th>Lucro ganho no ano</th>
+							    </tr>
+							    </thead>
+							 </table>
+						</vaadin-grid>
+						<br/>
+						<paper-button id="vender" raised class="custom green" on-click="vender"><iron-icon icon="save"></iron-icon>Vender</paper-button>
+						<br/>
+						<img id="grafico_user" src=""/>
+				  </div>
 			    </iron-pages>
 	</div>
   </template>
@@ -119,23 +146,30 @@
           type: Number,
           value: 0
         }
-      }
+      },    
+      vender: function () {
+    	  var items = this.$.sort_user.selection.selected();
+    }
   });
   (function() {
 	    HTMLImports.whenReady(function() {
 	      var grid = document.querySelector('#sort');
+	      var grafico = document.querySelector('#grafico');
+	      var grid_user = document.querySelector('#sort_user');
+	      var grafico_user = document.querySelector('#grafico_user');
 	      var filterInput;
 	      
 	      for (i = 0; i < document.querySelectorAll('paper-input').length; i++) { 
 	    	  	if('filter' == document.querySelectorAll('paper-input')[i].id){
 	    	  		filterInput = document.querySelectorAll('paper-input')[i];
-	    	  	}
+	    	  	} 
 	    	}
 	      var users = [];
 
 	      getJSON('acoes-mundo.json', function(json) {
 	        users = JSON.parse(json).result;
 	        grid.items = users;
+	        grid_user.items = users;
 	      });
 
 	      grid.addEventListener('sort-order-changed', function() {
@@ -161,7 +195,42 @@
 	          return res;
 	        });
 	      });
+	      
+	      grid_user.addEventListener('sort-order-changed', function() {
+	        var sortOrder = grid_user.sortOrder[0];
+	        var sortProperty = grid_user.columns[sortOrder.column].name;
+	        var sortDirection = sortOrder.direction;
+	        grid_user.items.sort(function(a, b) {
+	          var res;
+	          var path = sortProperty.split('.');
+	          for (var i = 0; i < path.length; i++) {
+	            a = a[path[i]];
+	            b = b[path[i]];
+	          }
+	          if (!isNaN(a)) {
+	            res = parseInt(a, 10) - parseInt(b, 10);
+	          } else {
+	            res = a.localeCompare(b);
+	          }
 
+	          if ('desc' === sortDirection) {
+	            res *= -1;
+	          }
+	          return res;
+	        });
+	      });
+	      
+	      grid.addEventListener("selected-items-changed", function() {
+	    	  grid.selection.selected(function(index) {
+	    		  grafico.src = 'http://chart.finance.yahoo.com/z?s='+users[index].acao+'&t=6m&q=c&l=on&z=l&a=m01-01-16,&p=e13,e150';
+	    	  });
+	    	});
+
+	      grid_user.addEventListener("selected-items-changed", function() {
+	    	  grid_user.selection.selected(function(index) {
+	    		  grafico_user.src = 'http://chart.finance.yahoo.com/z?s='+users[index].acao+'&t=6m&q=c&l=on&z=l&a=m01-01-16,&p=e13,e150';
+	    	  });
+	    	});
 	      
 	      filterInput.addEventListener('value-changed', function() {
 	        var filterText = filterInput.value.toLowerCase();
@@ -186,5 +255,6 @@
 	         }
 	         rawFile.send(null);
 	    }
+	    
 	  })();
 </script>
