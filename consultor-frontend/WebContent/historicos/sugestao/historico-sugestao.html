@@ -1,0 +1,108 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-tabs/paper-tab.html">
+<link rel="import" href="../../bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import" href="../../historicos/sugestao/historico-compra.html">
+<link rel="import" href="../../historicos/sugestao/historico-venda.html">
+
+<dom-module id="historico-sugestao">
+  <template id="historico-sugestao">
+	<style>
+	:host {
+		display: block;
+		position: relative;
+		padding: 1em 0;
+	}
+	
+	.paper {
+		background: #4285f4;
+		color: #fff;
+	}
+	
+	  .horizontal-section-container {
+    @apply(--layout-horizontal);
+    @apply(--layout-center);
+/*     @apply(--layout-wrap);  */
+    @apply(--center-justified);
+    
+  }
+
+  .vertical-section-container {
+    @apply(--layout-vertical);
+    @apply(--center-justified);
+
+
+  }
+
+  .horizontal-section {
+    background-color: white;
+    padding: 24px;
+    margin-right: 24px;
+    min-width: 260px; 
+    min-height: 350px;
+    top: 10px;
+    @apply(--shadow-elevation-2dp);
+  }
+  #container {
+    max-width: 600px;
+  }
+  paper-tabs, paper-toolbar {
+    background-color: var(--paper-blue-900);
+    color: #fff;
+    width: 100%;
+  }
+  
+  paper-tab[link] a {
+    @apply(--layout-horizontal);
+    @apply(--layout-center-center);
+    color: #fff;
+    text-decoration: none;
+  }
+  iron-pages {
+        border: 1px solid #ccc;
+        border-top: none;
+        padding: 8px;
+  }
+  paper-button.green {
+		    background-color: var(--paper-green-500);
+		    color: white;
+		    max-width: 300px;
+		}
+</style>
+    <div>
+   		<div class="horizontal-section-container">
+   		 <paper-tabs selected="{{selected}}">
+            <paper-tab>
+            	Sugest&otilde;es de Compra
+            </paper-tab>
+            <paper-tab>
+				Sugest&otilde;es de Venda
+            </paper-tab>
+          </paper-tabs>
+		</div>
+          &#013;
+              <iron-pages selected="{{selected}}">
+			      <div>
+						<historico-compra></historico-compra>
+				  </div>
+				  <div>
+				  		<historico-venda></historico-venda>
+				  </div>
+			    </iron-pages>
+	</div>
+  </template>
+</dom-module>
+<script>
+  Polymer({
+    is: 'historico-sugestao',
+    properties: {
+        selected: {
+          type: Number,
+          value: 0
+        }
+      }
+  });
+</script>

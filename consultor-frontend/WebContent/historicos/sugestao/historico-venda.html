@@ -1,0 +1,132 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/vaadin-grid/vaadin-grid.html">
+
+<dom-module id="historico-venda">
+  <template id="historico-venda">
+  	<style>
+		:host {
+			display: block;
+			position: relative;
+			padding: 1em 0;
+		}
+		
+		.paper {
+			background: #4285f4;
+			color: #fff;
+		}
+		
+	  	.vertical-section-container {
+	    	@apply(--layout-vertical);
+	    	@apply(--center-justified);
+	    }
+	
+	  	.horizontal-section {
+	    	background-color: white;
+	    	padding: 24px;
+	    	margin-right: 24px;
+	    	min-width: 260px; 
+	    	min-height: 350px;
+	    	top: 10px;
+	   	 	@apply(--shadow-elevation-2dp);
+	  	}
+	  	#container {
+	    	max-width: 600px;
+	  	}
+	  	
+	  	#sort {
+		   height: 250px;
+		}
+	</style>
+	<div>
+		<paper-input id="filter_venda" label="Filtro por c&oacute;digo de a&ccedil;&atilde;o"></paper-input>
+		<vaadin-grid id="grid_venda">
+			 <table>
+				<colgroup>
+					<col name="acao" sortable/>
+					<col name="dia" sortable/>
+					<col name="hora" sortable/>
+				</colgroup>
+				<thead>
+				    <tr>
+				      <th>C&oacute;digo a&ccedil;&atilde;o</th>
+				      <th>Dia</th>
+				      <th>Hora</th>
+				    </tr>
+				</thead>
+			</table>
+		</vaadin-grid>
+	</div>
+  </template>
+</dom-module>
+<script>
+  Polymer({
+    is: 'historico-venda'
+  });
+  (function() {
+	    HTMLImports.whenReady(function() {
+	      var grid = document.querySelector('#grid_venda');
+	      var filterInput;
+	      
+	      for (i = 0; i < document.querySelectorAll('paper-input').length; i++) { 
+	    	  	if('filter_venda' == document.querySelectorAll('paper-input')[i].id){
+	    	  		filterInput = document.querySelectorAll('paper-input')[i];
+	    	  	}
+	    	}
+	      var users = [];
+
+	      getJSON('vendas.json', function(json) {
+	        users = JSON.parse(json).result;
+	        grid.items = users;
+	      });
+
+	      grid.addEventListener('sort-order-changed', function() {
+	        var sortOrder = grid.sortOrder[0];
+	        var sortProperty = grid.columns[sortOrder.column].name;
+	        var sortDirection = sortOrder.direction;
+	        grid.items.sort(function(a, b) {
+	          var res;
+	          var path = sortProperty.split('.');
+	          for (var i = 0; i < path.length; i++) {
+	            a = a[path[i]];
+	            b = b[path[i]];
+	          }
+	          if (!isNaN(a)) {
+	            res = parseInt(a, 10) - parseInt(b, 10);
+	          } else {
+	            res = a.localeCompare(b);
+	          }
+
+	          if ('desc' === sortDirection) {
+	            res *= -1;
+	          }
+	          return res;
+	        });
+	      });
+
+	      
+	      filterInput.addEventListener('value-changed', function() {
+	        var filterText = filterInput.value.toLowerCase();
+	        grid.items = users.filter(function(val) {
+	          if (filterText) {
+	            return (val.acao.toLowerCase()).indexOf(filterText) > -1;
+	          } else {
+	            return true;
+	          }
+	        });
+	      });
+	    });
+	    
+	    function getJSON(file, callback) {
+	    	 var rawFile = new XMLHttpRequest();
+	         rawFile.overrideMimeType("application/json");
+	         rawFile.open("GET", file, true);
+	         rawFile.onreadystatechange = function() {
+	             if (rawFile.readyState === 4 && rawFile.status == "200") {
+	                 callback(rawFile.responseText);
+	             }
+	         }
+	         rawFile.send(null);
+	    }
+	  })();
+</script>
