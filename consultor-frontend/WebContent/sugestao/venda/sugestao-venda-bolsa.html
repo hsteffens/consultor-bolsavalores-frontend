@@ -1,0 +1,206 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/demo-pages.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import" href="../../bower_components/vaadin-combo-box/vaadin-combo-box.html">
+
+<dom-module id="sugestao-venda-bolsa">
+  <template id="sugestao-venda-bolsa">
+	<style>
+	:host {
+		display: block;
+		position: relative;
+		padding: 1em 0;
+	}
+	
+	.paper {
+		background: #4285f4;
+		color: #fff;
+	}
+	
+	  .horizontal-section-container {
+    @apply(--layout-horizontal);
+    @apply(--layout-center);
+/*     @apply(--layout-wrap);  */
+    @apply(--center-justified);
+    
+  }
+
+  .vertical-section-container {
+    @apply(--layout-vertical);
+    @apply(--center-justified);
+
+
+  }
+
+  .horizontal-section {
+    background-color: white;
+    padding: 24px;
+    margin-right: 24px;
+    min-width: 260px; 
+    min-height: 350px;
+    top: 10px;
+    @apply(--shadow-elevation-2dp);
+  }
+  #container {
+    max-width: 600px;
+  }
+  paper-tabs, paper-toolbar {
+    background-color: var(--paper-blue-900);
+    color: #fff;
+    width: 100%;
+  }
+  
+  paper-tab[link] a {
+    @apply(--layout-horizontal);
+    @apply(--layout-center-center);
+    color: #fff;
+    text-decoration: none;
+  }
+  iron-pages {
+        border: 1px solid #ccc;
+        border-top: none;
+        padding: 8px;
+  }
+  paper-button.green {
+		    background-color: var(--paper-green-500);
+		    color: white;
+		    max-width: 300px;
+		}
+</style>
+	<div>
+		<vaadin-combo-box
+    		 		id="bolsa_selecionada"
+    		 		bind-value = "{{bolsa}}"
+    		 		label="Bolsa de Valores"
+		    		items='["BM&FBOVESPA", "NYSE NASDAQ", "Deutsche Boerse"]'
+		  			value="BM&FBOVESPA">
+		</vaadin-combo-box>
+		<paper-input id="filter" label="Filtro por c&oacute;digo de a&ccedil;&atilde;o"></paper-input>
+		<vaadin-grid id="sort">
+			 <table>
+				   <colgroup>
+					   <col name="codigo" sortable/>
+		        	   <col name="valorAtual" sortable/>
+					   <col name="variacaoPercentual" sortable/>
+				   </colgroup>
+				   <thead>
+					    <tr>
+					      <th>C&oacute;digo a&ccedil;&atilde;o</th>
+					      <th>Pre&ccedil;o atual por a&ccedil;&atilde;o</th>
+					      <th>Lucro ganho no ano</th>
+					    </tr>
+				   </thead>
+			 </table>
+		</vaadin-grid>
+		<br/>
+		<img id="grafico" src=""/>
+	</div>
+  </template>
+</dom-module>
+<script>
+  Polymer({
+    is: 'sugestao-venda-bolsa',
+    vendar: function () {
+    	  var items = this.$.sort.selection.selected();
+    }
+  });
+  (function() {
+	    HTMLImports.whenReady(function() {
+	      var grid = document.querySelector('#sort');
+	      var grafico = document.querySelector('#grafico');
+	      var filterInput;
+	      var bolsa_selected = 1;
+	      var combobox = document.querySelector('#bolsa_selecionada');
+	      
+	      for (i = 0; i < document.querySelectorAll('paper-input').length; i++) { 
+	    	  	if('filter' == document.querySelectorAll('paper-input')[i].id){
+	    	  		filterInput = document.querySelectorAll('paper-input')[i];
+	    	  	} 
+	    	}
+	      var users = [];
+
+	      getJSON('http://localhost:8080/br.furb.consultor-backend/consultor/bolsavalores/venda/melhor-opcao/bolsa/'+bolsa_selected, function(json) {
+	        users = JSON.parse(json).result;
+	        grid.items = users;
+	      });
+
+	      grid.addEventListener('sort-order-changed', function() {
+	        var sortOrder = grid.sortOrder[0];
+	        var sortProperty = grid.columns[sortOrder.column].name;
+	        var sortDirection = sortOrder.direction;
+	        grid.items.sort(function(a, b) {
+	          var res;
+	          var path = sortProperty.split('.');
+	          for (var i = 0; i < path.length; i++) {
+	            a = a[path[i]];
+	            b = b[path[i]];
+	          }
+	          if (!isNaN(a)) {
+	            res = parseInt(a, 10) - parseInt(b, 10);
+	          } else {
+	            res = a.localeCompare(b);
+	          }
+
+	          if ('desc' === sortDirection) {
+	            res *= -1;
+	          }
+	          return res;
+	        });
+	      });
+	      
+	      combobox.addEventListener('value-changed', function() {
+	    	  	if (combobox.value == "BM&FBOVESPA"){
+	    	  		bolsa_selected = 1;
+	    	  		grid = document.querySelector('#sort');
+	    	  		getJSON('http://localhost:8080/br.furb.consultor-backend/consultor/bolsavalores/venda/melhor-opcao/bolsa/'+bolsa_selected, function(json) {
+	    		        users = JSON.parse(json).result;
+	    		        grid.items = users;
+	    		    });
+	    	  		grid.refreshItems();
+	    	  	}else{
+	    	  		bolsa_selected = 2;
+	    	  		grid = document.querySelector('#sort');
+	    	  		getJSON('http://localhost:8080/br.furb.consultor-backend/consultor/bolsavalores/venda/melhor-opcao/bolsa/'+bolsa_selected, function(json) {
+	    		        users = JSON.parse(json).result;
+	    		        grid.items = users;
+	    		    });
+	    	  		grid.refreshItems();
+	    	  	}
+		  });
+	      
+	      grid.addEventListener("selected-items-changed", function() {
+	    	  grid.selection.selected(function(index) {
+	    		  grafico.src = 'http://chart.finance.yahoo.com/z?s='+users[index].codigo+'&t=6m&q=c&l=on&z=l&a=m01-01-16,&p=e13,e150';
+	    	  });
+	    	});
+	      
+	      filterInput.addEventListener('value-changed', function() {
+	        var filterText = filterInput.value.toLowerCase();
+	        grid.items = users.filter(function(val) {
+	          if (filterText) {
+	            return (val.codigo.toLowerCase()).indexOf(filterText) > -1;
+	          } else {
+	            return true;
+	          }
+	        });
+	      });
+	    });
+	    
+	    function getJSON(file, callback) {
+	    	 var rawFile = new XMLHttpRequest();
+	         rawFile.overrideMimeType("application/json");
+	         rawFile.open("GET", file, true);
+	         rawFile.onreadystatechange = function() {
+	             if (rawFile.readyState === 4 && rawFile.status == "200") {
+	                 callback(rawFile.responseText);
+	             }
+	         }
+	         rawFile.send(null);
+	    }
+	    
+	  })();
+</script>
