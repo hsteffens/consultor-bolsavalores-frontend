@@ -3,6 +3,7 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
 
 <dom-module id="login-view">
   <template id="login-view">
@@ -75,6 +76,11 @@
 		a:hover{
 		    color : whites;
 		}
+		
+	  	.yellow-button {
+          text-transform: none;
+          color: #eeff41;
+        }
 	</style>
     <div>
    		<div class="horizontal-section-container">
@@ -92,7 +98,11 @@
 					<div id="footer">
 						<paper-button>
 							<iron-icon icon="label-outline" prefix></iron-icon>
-							 <a href="/BolsaValores/user-view/">Create Account</a></paper-button>
+							 <a href="/BolsaValores/user-view/">Create Account</a>
+					    </paper-button>
+					    <paper-toast id="errorMessage" duration="0" text="&Eacute; obrig&aacute;torio informar o usu&aacute;rio e a senha!">
+					        <paper-button onclick="errorMessage.toggle()" class="yellow-button">Close now!</paper-button>
+					    </paper-toast>
 					</div>
 				</div>
 			</div>
@@ -104,29 +114,82 @@
   Polymer({
     is: 'login-view',
     login: function () {
-        	this.$.inputpassword.isInvalid  = false;
-    		this.$.inputusername.isInvalid  = false;
-		    var form = document.createElement("form");
-		    form.setAttribute("method", "post");
-		    form.setAttribute("action", "/BolsaValores/feed/");
-			
+    		this.$.inputpassword.validate();
+        	this.$.inputusername.validate();
+    		if(this.$.inputpassword.invalid || this.$.inputusername.invalid){
+    			this.$.errorMessage.open();
+    			
+    			return;
+    		}
 		    var person = new Object();
 			person.username = this.username;
 			person.password = this.password;
-		            
-			var hiddenField = document.createElement("input");
-		    hiddenField.setAttribute("type", "hidden");
-		    hiddenField.setAttribute("name", 'person');
-		    hiddenField.setAttribute("value", person);
-	
-		    form.appendChild(hiddenField);
-	
-		    document.body.appendChild(form);
-		    form.submit();
+			
+			componente_error = this.$.errorMessage;
+			hasError = false;
+			var token = this.getCookie(person.username);
+			if (token != null && token != "") {
+				hasError = this.logonToken(token, componente_error);
+			} else{
+				 var url_logon = "http://localhost:8080/br.furb.consultor-backend/consultor/auth/id/consultor-bolsa-valores/user/"+person.username+"/passoword/"+person.password;
+         		 var logon_service = new XMLHttpRequest();
+     	        
+         		 logon_service.overrideMimeType("application/json");
+         		 logon_service.open("POST", url_logon, false);
+         		 logon_service.onreadystatechange = function() {
+	     	         if (logon_service.status == "200") {
+	     	        	var url = "http://localhost:8080/br.furb.consultor-backend/consultor/auth/token/"+logon_service.responseText;
+		     	   		var rawFile = new XMLHttpRequest();
+		     	           
+		     	   		rawFile.overrideMimeType("application/json");
+		     	        rawFile.open("POST", url, false);
+		     	        rawFile.onreadystatechange = function() {
+		     	             if (rawFile.status != "200") {
+		     	            	componente_error.text = JSON.parse(rawFile.responseText).message;
+		     	            	componente_error.open();
+		     	            	hasError = true;
+		     	            	throw JSON.parse(rawFile.responseText).message; 
+		     	             }
+		     	        }
+		     	        rawFile.send(null);
+		     	        
+		     	        var d = new Date();
+		     	        d.setTime(d.getTime() + (1*24*60*60*1000));
+		     	        var expires = "expires="+d.toUTCString();
+		     	        document.cookie = person.username+"=" + this.responseText + "; " + expires;
+	     	         }else{
+	     	        	componente_error.text = JSON.parse(rawFile.responseText).message;
+	     	        	componente_error.open();
+	     	        	hasError = true;
+	     	        	throw JSON.parse(rawFile.responseText).message; 
+	     	         }
+     	         }
+         		 logon_service.send(null);
+			}
+			
+			if(!hasError){
+			    var form = document.createElement("form");
+			    form.setAttribute("method", "post");
+			    form.setAttribute("action", "/BolsaValores/feed/");
+				
+				var hiddenField = document.createElement("input");
+			    hiddenField.setAttribute("type", "hidden");
+			    hiddenField.setAttribute("name", 'person');
+			    hiddenField.setAttribute("value", person);
+		
+			    form.appendChild(hiddenField);
+		
+			    document.body.appendChild(form);
+			    form.submit();
+			}
     },    
     cancel: function () {
     	this.$.inputusername.value = "";
     	this.$.inputpassword.value = "";
+    	this.$.inputpassword.invalid = false;
+    	this.$.inputusername.invalid = false;
+    	
+    	this.$.errorMessage.close();
     },
     setDialog: function (open) {
         if (open) {
@@ -138,6 +201,47 @@
             var textnode = document.querySelector("my-topnavigation");
             textnode.appendChild(node);
         }
+    },
+    
+    setCookie: function (cname, cvalue, exdays) {
+        var d = new Date();
+        d.setTime(d.getTime() + (exdays*24*60*60*1000));
+        var expires = "expires="+d.toUTCString();
+        document.cookie = cname + "=" + cvalue + "; " + expires;
+    },
+
+    getCookie: function (cname) {
+        var name = cname + "=";
+        var ca = document.cookie.split(';');
+        for(var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+    },
+    
+    logonToken: function(token, componente_error){
+    	var url = "http://localhost:8080/br.furb.consultor-backend/consultor/auth/token/"+token;
+		var rawFile = new XMLHttpRequest();
+        var error = false;
+		
+		rawFile.overrideMimeType("application/json");
+        rawFile.open("POST", url, false);
+        rawFile.onreadystatechange = function() {
+             if (rawFile.status != "200") {
+            	 componente_error.text = JSON.parse(rawFile.responseText).message;
+            	 componente_error.open();
+            	 error = true;
+            	 throw JSON.parse(rawFile.responseText).message; 
+             }
+        }
+        rawFile.send(null);
+        return error;
     }
   });
 </script>
