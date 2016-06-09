@@ -127,7 +127,7 @@
 			<iron-icon icon="mail" prefix></iron-icon></paper-input>
 		</div>
 		<div class="col-1">
-			<paper-input id="prof"  bind-value = "{{profissao}}" label="Profiss&atilde;o" maxlength="80" required>
+			<paper-input id="prof"  bind-value = "{{profissao}}" label="Profiss&atilde;o" maxlength="80">
 				<iron-icon icon="label-outline" prefix></iron-icon>
 			</paper-input>
 		</div>
@@ -154,11 +154,14 @@
 	</div>
 	<div class="row">	
     	<div class="col-2">
-    	    <paper-button raised class="custom green"><iron-icon icon="save"></iron-icon>Salvar</paper-button>
+    	    <paper-button raised class="custom green" on-click="confirm"><iron-icon icon="save"></iron-icon>Salvar</paper-button>
 		</div>
     	<div class="col-3">
     	    <paper-button raised class="custom red" on-click="cancel"><iron-icon icon="cancel"></iron-icon>Cancelar</paper-button>
 		</div>
+		<paper-toast id="errorMessage" duration="0" text="Há campos obrigatórios não preenchidos!">
+				<paper-button onclick="errorMessage.toggle()" class="yellow-button">Close now!</paper-button>
+		</paper-toast>
 	</div>	
   </template>
 </dom-module>
@@ -177,6 +180,37 @@
     	this.$.prof.value = "";
     	this.$.tipo_transacao.value = "";
     	this.$.tipo_operacao.value = "";
+    	
+		this.$.username.invalid = false;
+		this.$.pass.invalid = false;
+		this.$.name.invalid = false;
+		this.$.email.invalid = false;
+    	
+    	this.$.errorMessage.close();
+    },
+    confirm: function(){
+    	this.$.username.validate();
+    	this.$.pass.validate();
+    	this.$.name.validate();
+    	this.$.email.validate();
+		if(this.$.username.invalid || this.$.pass.invalid || || this.$.name.invalid || this.$.email.invalid){
+			this.$.errorMessage.open();
+			
+			return;
+		}
+    	
+    	var usuarioDTO = new Object();
+    	usuarioDTO.userName = this.username;
+    	usuarioDTO.password = this.password;
+    	usuarioDTO.cpf = this.cpf;
+    	usuarioDTO.nome = this.name;
+    	usuarioDTO.email = this.email;
+    	usuarioDTO.profissao = this.profissao;
+    	usuarioDTO.perfilInvestidor = this.transacao;
+    	usuarioDTO.formaOperacao = this.operacao;
+
+    	
     }
+    
   });
 </script>

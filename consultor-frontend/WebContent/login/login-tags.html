@@ -98,7 +98,7 @@
 					<div id="footer">
 						<paper-button>
 							<iron-icon icon="label-outline" prefix></iron-icon>
-							 <a href="/BolsaValores/user-view/">Create Account</a>
+							 <a href="/BolsaValores/cadastro-usuario/">Create Account</a>
 					    </paper-button>
 					    <paper-toast id="errorMessage" duration="0" text="&Eacute; obrig&aacute;torio informar o usu&aacute;rio e a senha!">
 					        <paper-button onclick="errorMessage.toggle()" class="yellow-button">Close now!</paper-button>
@@ -127,18 +127,19 @@
 			
 			componente_error = this.$.errorMessage;
 			hasError = false;
-			var token = this.getCookie(person.username);
+			var token = this.getCookie("token");
 			if (token != null && token != "") {
 				hasError = this.logonToken(token, componente_error);
 			} else{
-				 var url_logon = "http://localhost:8080/br.furb.consultor-backend/consultor/auth/id/consultor-bolsa-valores/user/"+person.username+"/passoword/"+person.password;
+				 var url_logon = "http://localhost:8080/br.furb.consultor-backend/consultor/auth/user/"+person.username+"/passoword/"+person.password;
          		 var logon_service = new XMLHttpRequest();
      	        
          		 logon_service.overrideMimeType("application/json");
          		 logon_service.open("POST", url_logon, false);
          		 logon_service.onreadystatechange = function() {
 	     	         if (logon_service.status == "200") {
-	     	        	var url = "http://localhost:8080/br.furb.consultor-backend/consultor/auth/token/"+logon_service.responseText;
+	     	        	token = JSON.parse(logon_service.responseText).token;
+	     	        	var url = "http://localhost:8080/br.furb.consultor-backend/consultor/auth/token/"+token;
 		     	   		var rawFile = new XMLHttpRequest();
 		     	           
 		     	   		rawFile.overrideMimeType("application/json");
@@ -156,12 +157,12 @@
 		     	        var d = new Date();
 		     	        d.setTime(d.getTime() + (1*24*60*60*1000));
 		     	        var expires = "expires="+d.toUTCString();
-		     	        document.cookie = person.username+"=" + this.responseText + "; " + expires;
+		     	        document.cookie = "token=" + JSON.parse(this.responseText).token + "; " + expires + "; path=/";
 	     	         }else{
-	     	        	componente_error.text = JSON.parse(rawFile.responseText).message;
+	     	        	componente_error.text = logon_service.responseText;
 	     	        	componente_error.open();
 	     	        	hasError = true;
-	     	        	throw JSON.parse(rawFile.responseText).message; 
+	     	        	throw logon_service.responseText; 
 	     	         }
      	         }
          		 logon_service.send(null);
@@ -190,17 +191,6 @@
     	this.$.inputusername.invalid = false;
     	
     	this.$.errorMessage.close();
-    },
-    setDialog: function (open) {
-        if (open) {
-            var node = document.querySelector('#dialogFeedback');
-            var textnode = document.querySelector("body");
-            textnode.appendChild(node);
-        } else {
-            var node = document.querySelector('#dialogFeedback');
-            var textnode = document.querySelector("my-topnavigation");
-            textnode.appendChild(node);
-        }
     },
     
     setCookie: function (cname, cvalue, exdays) {
