@@ -5,6 +5,7 @@
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/vaadin-combo-box/vaadin-combo-box.html">
 <link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="../cpf-input/cpf-input.html">
 
 <dom-module id="user-view">
@@ -93,6 +94,10 @@
 	    color: white;
 	    max-width: 150px;
 	}
+	.yellow-button {
+          text-transform: none;
+          color: #eeff41;
+        }
 </style>
 	<div class="row">	
     	<div class="col-1">
@@ -135,20 +140,18 @@
 	<div class="row">
     		<div class="col-1">
     			<vaadin-combo-box
-    		 		id="tipo_transacao"
-    		 		bind-value = "{{transacao}}"
+    		 		id="tipo_transacao" class="elements-box"
     		 		label="Perfil de investidor"
-		    		items='["Conservador", "Moderado", "Agressivo"]'
-		  			value="Moderado">
+    		 		item-label-path="name"
+                    item-value-path="id">
 		  		</vaadin-combo-box>
 			</div>
 			<div class="col-1">
     			<vaadin-combo-box
-    		 		id="tipo_operacao"
-    		 		bind-value = "{{operacao}}"
+    		 		id="tipo_operacao" class="elements-box"
     		 		label="Forma de opera&ccedil;&atilde;o"
-		    		items='["Day Trade", "Swing Trade", "Position Trade", "Buy & Hold"]'
-		  			value="Position Trade">
+		  			item-label-path="name"
+                    item-value-path="id">
 		  		</vaadin-combo-box>
 			</div>
 	</div>
@@ -159,15 +162,26 @@
     	<div class="col-3">
     	    <paper-button raised class="custom red" on-click="cancel"><iron-icon icon="cancel"></iron-icon>Cancelar</paper-button>
 		</div>
-		<paper-toast id="errorMessage" duration="0" text="Há campos obrigatórios não preenchidos!">
-				<paper-button onclick="errorMessage.toggle()" class="yellow-button">Close now!</paper-button>
+		<paper-toast id="message" duration="0" text="Há campos obrigatórios não preenchidos!">
+				<paper-button onclick="message.toggle()" class="yellow-button">Close now!</paper-button>
 		</paper-toast>
 	</div>	
   </template>
 </dom-module>
 <script>
   Polymer({
-    is: 'user-view',    
+    is: 'user-view',
+    properties: {
+        service: {
+            type: String
+        },
+        method: {
+        	type: String
+        },
+        redirect: {
+        	type: Boolean
+        }
+    },
     cancel: function () {
     	this.$.username.value = "";
     	this.$.pass.value = "";
@@ -183,6 +197,7 @@
     	
 		this.$.username.invalid = false;
 		this.$.pass.invalid = false;
+		this.$.cpf.invalid = false;
 		this.$.name.invalid = false;
 		this.$.email.invalid = false;
     	
@@ -192,8 +207,9 @@
     	this.$.username.validate();
     	this.$.pass.validate();
     	this.$.name.validate();
+    	this.$.cpf.validate();
     	this.$.email.validate();
-		if(this.$.username.invalid || this.$.pass.invalid || || this.$.name.invalid || this.$.email.invalid){
+		if(this.$.username.invalid || this.$.pass.invalid || this.$.cpf.invalid || this.$.name.invalid || this.$.email.invalid){
 			this.$.errorMessage.open();
 			
 			return;
@@ -202,15 +218,67 @@
     	var usuarioDTO = new Object();
     	usuarioDTO.userName = this.username;
     	usuarioDTO.password = this.password;
-    	usuarioDTO.cpf = this.cpf;
+    	usuarioDTO.cpf = this.$.cpf._cpf1 + this.$.cpf._cpf2 + this.$.cpf._cpf3 + this.$.cpf._cpf4;
     	usuarioDTO.nome = this.name;
     	usuarioDTO.email = this.email;
     	usuarioDTO.profissao = this.profissao;
-    	usuarioDTO.perfilInvestidor = this.transacao;
-    	usuarioDTO.formaOperacao = this.operacao;
-
+    	usuarioDTO.perfilInvestidor = this.$.tipo_transacao.value;
+    	usuarioDTO.formaOperacao = this.$.tipo_operacao.value;
     	
+    	var person = new Object();
+		person.username = this.username;
+		person.password = this.password;
+    	
+    	var rawFile = new XMLHttpRequest();
+        rawFile.overrideMimeType("application/json");
+        rawFile.open(this.method, this.service, true);
+        rawFile.setRequestHeader("Content-Type", "application/json");
+        rawFile.onreadystatechange = function() {
+            if (rawFile.readyState === 4 && rawFile.status == "200") {
+            	message.text = JSON.parse(rawFile.responseText).mensagem;
+            	message.open();
+            	if("OK" == JSON.parse(rawFile.responseText).status){
+            		var form = document.createElement("form");
+    			    form.setAttribute("method", "post");
+    			    form.setAttribute("action", "/BolsaValores/feed/");
+    				
+    				var hiddenField = document.createElement("input");
+    			    hiddenField.setAttribute("type", "hidden");
+    			    hiddenField.setAttribute("name", 'person');
+    			    hiddenField.setAttribute("value", person);
+    		
+    			    form.appendChild(hiddenField);
+    		
+    			    document.body.appendChild(form);
+    			    form.submit();
+            	}
+            }
+        }
+        rawFile.send(JSON.stringify(usuarioDTO));
     }
     
   });
+  
+  var elementsTipoTransacao = [
+                      {id: 1, name: 'Conservador'},
+                      {id: 2, name: 'Moderado'},
+                      {id: 3, name: 'Agressivo'}
+                      ];
+  var elementsTipoOperacao = [
+                      {id: 1, name: 'Day Trade'},
+                      {id: 2, name: 'Swing Trade'},
+                      {id: 3, name: 'Position Trade'},
+                      {id: 4, name: 'Buy & Hold'}
+                      ];
+  HTMLImports.whenReady(function() {
+	    var tipo_transacao = document.querySelector('#tipo_transacao');
+	    var tipo_operacao = document.querySelector('#tipo_operacao');
+
+	    tipo_transacao.items = elementsTipoTransacao;
+	    tipo_operacao.items = elementsTipoOperacao;
+	    
+	    tipo_transacao.value = 2;
+	    tipo_operacao.value = 3;
+
+	  });
 </script>
