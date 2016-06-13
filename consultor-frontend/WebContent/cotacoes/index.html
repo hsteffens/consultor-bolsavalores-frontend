@@ -23,6 +23,43 @@
       		 color: #000000;
 		}
 	</style>
+	<script>
+   	function validateLogin(){
+       	var url = "http://localhost:8080/br.furb.consultor-backend/consultor/auth/token/"+getCookie("token");
+   		var rawFile = new XMLHttpRequest();
+     	           
+   		rawFile.overrideMimeType("application/json");
+		rawFile.open("POST", url, false);
+		rawFile.onreadystatechange = function() {
+		     if (rawFile.status != "200") {
+		    	var form = document.createElement("form");
+			    form.setAttribute("method", "post");
+			    form.setAttribute("action", "/BolsaValores/login/");
+				
+			    document.body.appendChild(form);
+			    form.submit();
+		     }
+		}
+		rawFile.send(null);
+	}
+	
+	 function getCookie (cname) {
+	    var name = cname + "=";
+	    var ca = document.cookie.split(';');
+	    for(var i = 0; i < ca.length; i++) {
+	        var c = ca[i];
+	        while (c.charAt(0) == ' ') {
+	            c = c.substring(1);
+	        }
+	        if (c.indexOf(name) == 0) {
+	            return c.substring(name.length, c.length);
+	        }
+	    }
+	    return "";
+	}
+	 
+	window.onload = validateLogin;
+	</script>
 </head>
 <body>
 	<top-view></top-view>
