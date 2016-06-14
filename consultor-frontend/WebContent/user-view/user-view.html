@@ -179,7 +179,8 @@
         	type: String
         },
         redirect: {
-        	type: Boolean
+        	type: Boolean,
+        	value: false
         }
     },
     cancel: function () {
@@ -203,6 +204,21 @@
     	
     	this.$.errorMessage.close();
     },
+    getToken : function (cname) {
+	    var name = cname + "=";
+	    var ca = document.cookie.split(';');
+	    for(var i = 0; i < ca.length; i++) {
+	        var c = ca[i];
+	        while (c.charAt(0) == ' ') {
+	            c = c.substring(1);
+	        }
+	        if (c.indexOf(name) == 0) {
+	            return c.substring(name.length, c.length);
+	        }
+	    }
+	    return "";
+	},
+	 
     confirm: function(){
     	this.$.username.validate();
     	this.$.pass.validate();
@@ -211,7 +227,6 @@
     	this.$.email.validate();
 		if(this.$.username.invalid || this.$.pass.invalid || this.$.cpf.invalid || this.$.name.invalid || this.$.email.invalid){
 			this.$.errorMessage.open();
-			
 			return;
 		}
     	
@@ -219,6 +234,13 @@
     	usuarioDTO.userName = this.username;
     	usuarioDTO.password = this.password;
     	usuarioDTO.cpf = this.$.cpf._cpf1 + this.$.cpf._cpf2 + this.$.cpf._cpf3 + this.$.cpf._cpf4;
+    	if(usuarioDTO.cpf == ""){
+    		usuarioDTO.cpf = this.$.cpf.value;
+    	}
+    	if(usuarioDTO.cpf == ""){
+			this.$.errorMessage.open();
+			return;
+    	}
     	usuarioDTO.nome = this.name;
     	usuarioDTO.email = this.email;
     	usuarioDTO.profissao = this.profissao;
@@ -232,15 +254,34 @@
     	var rawFile = new XMLHttpRequest();
         rawFile.overrideMimeType("application/json");
         rawFile.open(this.method, this.service, true);
+        
+        var tokenLoad;
+        var name = "token=";
+	    var ca = document.cookie.split(';');
+	    for(var i = 0; i < ca.length; i++) {
+	        var c = ca[i];
+	        while (c.charAt(0) == ' ') {
+	            c = c.substring(1);
+	        }
+	        if (c.indexOf(name) == 0) {
+	        	tokenLoad = c.substring(name.length, c.length);
+	        }
+	    }
+        
+	    var redireciona =  this.redirect;
+	    
+        if(tokenLoad != null){
+        	rawFile.setRequestHeader("Authorization", tokenLoad);
+        }
         rawFile.setRequestHeader("Content-Type", "application/json");
         rawFile.onreadystatechange = function() {
             if (rawFile.readyState === 4 && rawFile.status == "200") {
             	message.text = JSON.parse(rawFile.responseText).mensagem;
             	message.open();
-            	if("OK" == JSON.parse(rawFile.responseText).status){
+            	if("OK" == JSON.parse(rawFile.responseText).status && redireciona){
             		var form = document.createElement("form");
     			    form.setAttribute("method", "post");
-    			    form.setAttribute("action", "/BolsaValores/feed/");
+    			    form.setAttribute("action", "/BolsaValores/login/");
     				
     				var hiddenField = document.createElement("input");
     			    hiddenField.setAttribute("type", "hidden");
@@ -271,6 +312,16 @@
                       {id: 4, name: 'Buy & Hold'}
                       ];
   HTMLImports.whenReady(function() {
+	    var username = document.querySelector('#username');
+	    var password = document.querySelector('#pass');
+	    var cpf1 = document.querySelectorAll("input")[3];
+	    var cpf2 = document.querySelectorAll("input")[4];
+	    var cpf3 = document.querySelectorAll("input")[5];
+	    var cpf4 = document.querySelectorAll("input")[6];
+	    var cpf = document.querySelector('#cpf');
+	    var name = document.querySelector('#name');
+	    var email = document.querySelector('#email');
+	    var profissao = document.querySelector('#prof');
 	    var tipo_transacao = document.querySelector('#tipo_transacao');
 	    var tipo_operacao = document.querySelector('#tipo_operacao');
 
@@ -279,6 +330,53 @@
 	    
 	    tipo_transacao.value = 2;
 	    tipo_operacao.value = 3;
+	    
+		function validateLogin(){
+			var token = getCookie("token");
+			if(token != null){
+		       	var url = "http://localhost:8080/br.furb.consultor-backend/consultor/user/usuario-logado";
+		   		var rawFile = new XMLHttpRequest();
+		     	           
+		   		rawFile.overrideMimeType("application/json");
+				rawFile.open("GET", url, false);
+				rawFile.setRequestHeader("Authorization", token);
+				rawFile.onreadystatechange = function() {
+				     if (rawFile.status == "200") {
+				    	 var usuarioLogado = JSON.parse(rawFile.responseText);
+				    	 username.value = usuarioLogado.userName;
+				    	 password.value = usuarioLogado.password;
+				    	 cpf1.value = usuarioLogado.cpf.toString().substr(0, 3);
+				    	 cpf2.value = usuarioLogado.cpf.toString().substr(3, 3);
+				    	 cpf3.value = usuarioLogado.cpf.toString().substr(6, 3);
+				    	 cpf4.value = usuarioLogado.cpf.toString().substr(9, 2);
+				    	 cpf.value = usuarioLogado.cpf;
+				    	 name.value = usuarioLogado.nome;
+				    	 email.value = usuarioLogado.email;
+				    	 profissao.value = usuarioLogado.profissao;
+				    	 tipo_transacao.value = usuarioLogado.perfilInvestidor;
+				    	 tipo_operacao.value = usuarioLogado.formaOperacao;
+				     }
+				}
+				rawFile.send(null);
+			}
+		}
+		
+		 function getCookie (cname) {
+		    var name = cname + "=";
+		    var ca = document.cookie.split(';');
+		    for(var i = 0; i < ca.length; i++) {
+		        var c = ca[i];
+		        while (c.charAt(0) == ' ') {
+		            c = c.substring(1);
+		        }
+		        if (c.indexOf(name) == 0) {
+		            return c.substring(name.length, c.length);
+		        }
+		    }
+		    return "";
+		}
+		 
+		window.onload = validateLogin;
 
 	  });
 </script>

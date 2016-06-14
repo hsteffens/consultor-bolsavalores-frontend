@@ -182,7 +182,7 @@ a:hover {
 						</iron-icon>
 						<a href="/BolsaValores/historicos/sugestao/">Hist&oacute;rico de Recomenda&ccedil;&otilde;es</a> 
 					</paper-item> 
-					<paper-item label="logoff" center horizontal layout flex> 
+					<paper-item label="logoff" on-tap="logoff" center horizontal layout flex> 
 						<iron-icon icon="exit-to-app" prefix>
 						</iron-icon>
 						<a href="/BolsaValores">Sair do sistema</a> 
@@ -203,6 +203,9 @@ a:hover {
 	},
 	filter : function() {
 		alert("Filter dialog");
-	}
+	},
+	logoff : function (e) {
+		document.cookie = 'token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    }
   });
 </script>
