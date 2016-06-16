@@ -1,6 +1,6 @@
-
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
 
 <dom-module id="carteira-cliente">
 	<template id="carteira-cliente">
@@ -40,6 +40,10 @@
 		    color: white;
 		    max-width: 150px;
 		}
+		.yellow-button {
+          text-transform: none;
+          color: #eeff41;
+        }
 	</style>
 	<div>
 		<paper-input id="filter" label="Filtro por c&oacute;digo de a&ccedil;&atilde;o comprada"></paper-input>
@@ -54,7 +58,7 @@
 			    <tr>
 			      <th>C&oacute;digo A&ccedil;&atilde;o</th>
 			      <th>Quantidade</th>
-			      <th>Pre&atilde;o Pago</th>
+			      <th>Pre&ccedil;o Pago</th>
 			    </tr>
 			    </thead>
 			 </table>
@@ -78,12 +82,15 @@
 		</div>
 		<div class="row">	
 	    	<div class="col-3">
-	    	    <paper-button raised class="custom green"><iron-icon icon="save"></iron-icon>Salvar</paper-button>
+	    	    <paper-button raised class="custom green" on-click="confirm"><iron-icon icon="save"></iron-icon>Salvar</paper-button>
 			</div>
 	    	<div class="col-4">
 	    	    <paper-button raised class="custom red" on-click="cancel"><iron-icon icon="cancel"></iron-icon>Cancelar</paper-button>
 			</div>
 		</div>
+		<paper-toast id="message" duration="0" text="Há campos obrigatórios não preenchidos!">
+				<paper-button onclick="message.toggle()" class="yellow-button">Close now!</paper-button>
+		</paper-toast>
 	</div>
 	</template>
 </dom-module>
@@ -94,6 +101,59 @@
 	    	this.$.valor.value = "";
 	    	this.$.quatindade.value = "";
 	    	this.$.acao.value = "";
+	    	
+	    	this.$.valor.invalid = false;
+	    	this.$.quatindade.invalid = false;
+	    	this.$.acao.invalid = false;
+	    },
+	    confirm: function () {
+	    	this.$.quatindade.validate();
+	    	this.$.acao.validate();
+			if(this.$.quatindade.invalid || this.$.acao.invalid){
+				this.$.message.open();
+				return;
+			}
+			
+			var grid = this.$.sort;
+			var rawFile = new XMLHttpRequest();
+	        rawFile.overrideMimeType("application/json");
+	        rawFile.open("POST", "http://localhost:8080/br.furb.consultor-backend/consultor/carteira-cliente/acao/"+this.acao+"/quantidade/"+this.quant+"/preco/"+this.valor, true);
+	        rawFile.setRequestHeader("Authorization", this.getCookie("token"));
+	        rawFile.onreadystatechange = function() {
+	            if (rawFile.readyState === 4 && rawFile.status == "200") {
+	            	if("OK" == JSON.parse(rawFile.responseText).status){
+	            		 var consulta = new XMLHttpRequest();
+	            		 consulta.overrideMimeType("application/json");
+	            		 consulta.open("GET", 'http://localhost:8080/br.furb.consultor-backend/consultor/carteira-cliente', true);
+	            		 consulta.setRequestHeader("Authorization", getCookie("token"));
+	            		 consulta.onreadystatechange = function() {
+	        	             if (consulta.readyState === 4 && consulta.status == "200") {
+	        	            	 var items = JSON.parse(consulta.responseText).result;
+	     	    		         grid.items = items;
+	        	             }
+	        	         }
+	            		 
+	            		 consulta.send(null);
+	            	}
+	            	message.text = JSON.parse(rawFile.responseText).mensagem;
+	            	message.open();
+	            }
+	        }
+	        rawFile.send(null);
+	    },
+	    getCookie: function (cname) {
+	        var name = cname + "=";
+	        var ca = document.cookie.split(';');
+	        for(var i = 0; i < ca.length; i++) {
+	            var c = ca[i];
+	            while (c.charAt(0) == ' ') {
+	                c = c.substring(1);
+	            }
+	            if (c.indexOf(name) == 0) {
+	                return c.substring(name.length, c.length);
+	            }
+	        }
+	        return "";
 	    }
 	 });
   (function() {
@@ -108,7 +168,7 @@
     	}
       var users = [];
 
-      getJSON('acoes-usuario.json', function(json) {
+      getJSON('http://localhost:8080/br.furb.consultor-backend/consultor/carteira-cliente', function(json) {
         users = JSON.parse(json).result;
         grid.items = users;
       });
@@ -154,6 +214,7 @@
     	 var rawFile = new XMLHttpRequest();
          rawFile.overrideMimeType("application/json");
          rawFile.open("GET", file, true);
+         rawFile.setRequestHeader("Authorization", getCookie("token"));
          rawFile.onreadystatechange = function() {
              if (rawFile.readyState === 4 && rawFile.status == "200") {
                  callback(rawFile.responseText);
