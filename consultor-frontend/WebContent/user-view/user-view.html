@@ -101,12 +101,12 @@
 </style>
 	<div class="row">	
     	<div class="col-1">
-			<paper-input id="username"  bind-value = "{{username}}" label="User Name" maxlength="60" required>
+			<paper-input id="username"  bind-value = "{{username}}" label="User Name" maxlength="60" required always-float-label>
 				<iron-icon icon="label" prefix></iron-icon>
 			</paper-input>
 		</div>
 		<div class="col-1">
-			<paper-input id="pass" bind-value = "{{password}}" type="password" label="Password" maxlength="45" required>
+			<paper-input id="pass" bind-value = "{{password}}" type="password" label="Password" maxlength="45" required always-float-label>
 				<iron-icon icon="label" prefix></iron-icon>
 			</paper-input>
 		</div>
@@ -121,18 +121,18 @@
 			</paper-input-container>
 		</div>
     	<div class="col-1">
-			<paper-input id="name"  bind-value = "{{name}}" label="Nome" maxlength="45" required>
+			<paper-input id="name"  bind-value = "{{name}}" label="Nome" maxlength="45" required always-float-label>
 				<iron-icon icon="label" prefix></iron-icon>
 			</paper-input>
 		</div>
 	</div>
 	<div class="row">	
     	<div class="col-1">
-			<paper-input id="email"  bind-value = "{{email}}" label="Email" maxlength="60" required>
+			<paper-input id="email"  bind-value = "{{email}}" label="Email" maxlength="60" required always-float-label>
 			<iron-icon icon="mail" prefix></iron-icon></paper-input>
 		</div>
 		<div class="col-1">
-			<paper-input id="prof"  bind-value = "{{profissao}}" label="Profiss&atilde;o" maxlength="80">
+			<paper-input id="prof"  bind-value = "{{profissao}}" label="Profiss&atilde;o" maxlength="80" always-float-label>
 				<iron-icon icon="label-outline" prefix></iron-icon>
 			</paper-input>
 		</div>
@@ -142,7 +142,7 @@
     			<vaadin-combo-box
     		 		id="tipo_transacao" class="elements-box"
     		 		label="Perfil de investidor"
-    		 		item-label-path="name"
+    		 		item-label-path="name" always-float-label
                     item-value-path="id">
 		  		</vaadin-combo-box>
 			</div>
@@ -150,7 +150,7 @@
     			<vaadin-combo-box
     		 		id="tipo_operacao" class="elements-box"
     		 		label="Forma de opera&ccedil;&atilde;o"
-		  			item-label-path="name"
+		  			item-label-path="name" always-float-label
                     item-value-path="id">
 		  		</vaadin-combo-box>
 			</div>
@@ -202,7 +202,7 @@
 		this.$.name.invalid = false;
 		this.$.email.invalid = false;
     	
-    	this.$.errorMessage.close();
+    	this.$.message.close();
     },
     getToken : function (cname) {
 	    var name = cname + "=";
@@ -226,7 +226,7 @@
     	this.$.cpf.validate();
     	this.$.email.validate();
 		if(this.$.username.invalid || this.$.pass.invalid || this.$.cpf.invalid || this.$.name.invalid || this.$.email.invalid){
-			this.$.errorMessage.open();
+			this.$.message.open();
 			return;
 		}
     	
@@ -238,7 +238,7 @@
     		usuarioDTO.cpf = this.$.cpf.value;
     	}
     	if(usuarioDTO.cpf == ""){
-			this.$.errorMessage.open();
+			this.$.message.open();
 			return;
     	}
     	usuarioDTO.nome = this.name;
@@ -273,11 +273,13 @@
         if(tokenLoad != null){
         	rawFile.setRequestHeader("Authorization", tokenLoad);
         }
+        
+        var mensagem = this.$.message;
         rawFile.setRequestHeader("Content-Type", "application/json");
         rawFile.onreadystatechange = function() {
             if (rawFile.readyState === 4 && rawFile.status == "200") {
-            	message.text = JSON.parse(rawFile.responseText).mensagem;
-            	message.open();
+            	mensagem.text = JSON.parse(rawFile.responseText).mensagem;
+            	mensagem.open();
             	if("OK" == JSON.parse(rawFile.responseText).status && redireciona){
             		var form = document.createElement("form");
     			    form.setAttribute("method", "post");
