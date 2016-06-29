@@ -1,3 +1,5 @@
+<script src="../bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/paper-styles/demo-pages.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
@@ -8,6 +10,7 @@
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import" href="../bower_components/highcharts-chart/highcharts-chart.html">
 
 <dom-module id="cotacao-view">
   <template id="cotacao-view">
@@ -55,6 +58,9 @@
     color: #fff;
     width: 100%;
   }
+  #sort {
+  	max-height: 300px;
+  }
   
   paper-tab[link] a {
     @apply(--layout-horizontal);
@@ -79,20 +85,25 @@
 		        	   <col name="valorAbertura" sortable/>
 		        	   <col name="valorAtual" sortable/>
 					   <col name="variacaoPercentual" sortable/>
+					   <col name="baixa" sortable/>
+					   <col name="alta" sortable/>
 				   </colgroup>
 				   <thead>
 					    <tr>
 					      <th>C&oacute;digo a&ccedil;&atilde;o</th>
-					      <th>Data Ult. Atualiza&ccedil;ão</th>
-					      <th>Hora Ult. Atualiza&ccedil;ão</th>
+					      <th>Data Ult. Atual.</th>
+					      <th>Hora Ult. Atual.</th>
 					      <th>Pre&ccedil;o Abertura</th>
 					      <th>Pre&ccedil;o atual por a&ccedil;&atilde;o</th>
 					      <th>Percentual</th>
+					      <th>Baixa dia</th>
+					      <th>Alta dia</th>
 					    </tr>
 				   </thead>
 			 </table>
 		</vaadin-grid>
 		<br/>
+		<div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
 		<img id="grafico" src=""/>
 	</div>
   </template>
@@ -117,6 +128,39 @@
 	      getJSON('http://localhost:8080/br.furb.consultor-backend/consultor/cotacao', function(json) {
 	        users = JSON.parse(json).result;
 	        grid.items = users;
+	        
+	        var cotacoes = [];
+	    	  
+	        for (i = 0; i < users.length; i++) { 
+	    		var cotacao = new Object(); 
+	    		cotacao.data = [];
+	    		
+	    		cotacao.name = users[i].codigo;
+	    		cotacao.data[0] = users[i].variacaoPercentual;
+	    		
+	    		cotacoes[i] = cotacao;
+	   		}
+	        
+	        $('#container').highcharts({
+		        chart: {
+		            type: 'column'
+		        },
+		        title: {
+		            text: 'Gr\u00e1fico por porcentual de crescimento'
+		        },
+		        xAxis: {
+		            categories: ['Ac\u00e3o']
+		        },
+				yAxis: {
+				        title: {
+				            text: 'Percentual'
+				        }
+				},
+		        credits: {
+		            enabled: false
+		        },
+		        series: cotacoes
+		    });
 	      });
 
 	      grid.addEventListener('sort-order-changed', function() {

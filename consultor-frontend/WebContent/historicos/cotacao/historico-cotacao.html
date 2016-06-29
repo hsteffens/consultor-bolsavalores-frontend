@@ -1,49 +1,73 @@
+<script src="../../bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/demo-pages.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-tabs/paper-tab.html">
+<link rel="import" href="../../bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import" href="../../bower_components/highcharts-chart/highcharts-chart.html">
 
 <dom-module id="historico-cotacao">
   <template id="historico-cotacao">
-  	<style>
-		:host {
-			display: block;
-			position: relative;
-			padding: 1em 0;
-		}
-		
-		.paper {
-			background: #4285f4;
-			color: #fff;
-		}
-		
-	  	.vertical-section-container {
-	    	@apply(--layout-vertical);
-	    	@apply(--center-justified);
-	    }
+	<style>
+	:host {
+		display: block;
+		position: relative;
+		padding: 1em 0;
+	}
 	
-	  	.horizontal-section {
-	    	background-color: white;
-	    	padding: 24px;
-	    	margin-right: 24px;
-	    	min-width: 260px; 
-	    	min-height: 350px;
-	    	top: 10px;
-	   	 	@apply(--shadow-elevation-2dp);
-	  	}
-	  	#container {
-	    	max-width: 600px;
-	  	}
-	  	
-	  	#sort {
-		   height: 250px;
-		}
-	</style>
+	.paper {
+		background: #4285f4;
+		color: #fff;
+	}
+	
+	  .horizontal-section-container {
+    @apply(--layout-horizontal);
+    @apply(--layout-center);
+/*     @apply(--layout-wrap);  */
+    @apply(--center-justified);
+    
+  }
+
+  .vertical-section-container {
+    @apply(--layout-vertical);
+    @apply(--center-justified);
+
+
+  }
+
+  .horizontal-section {
+    background-color: white;
+    padding: 24px;
+    margin-right: 24px;
+    min-width: 260px; 
+    min-height: 350px;
+    top: 10px;
+    @apply(--shadow-elevation-2dp);
+  }
+  #container {
+    max-width: 600px;
+  }
+  #sort {
+  max-height: 300px;
+  }
+  iron-pages {
+        border: 1px solid #ccc;
+        border-top: none;
+        padding: 8px;
+  }
+</style>
 	<div>
 		<paper-input id="filter" label="Filtro por c&oacute;digo de a&ccedil;&atilde;o"></paper-input>
 		<vaadin-grid id="sort">
 			 <table>
 				<colgroup>
-					<col name="acao" sortable/>
+					<col name="codigo" sortable/>
 					<col name="dia" sortable/>
 					<col name="hora" sortable/>
 					<col name="preco" sortable/>
@@ -56,8 +80,10 @@
 				      <th>Pre&ccedil;o</th>
 				    </tr>
 				</thead>
-			</table>
+			 </table>
 		</vaadin-grid>
+		<br/>
+		<div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
 	</div>
   </template>
 </dom-module>
@@ -68,18 +94,92 @@
   (function() {
 	    HTMLImports.whenReady(function() {
 	      var grid = document.querySelector('#sort');
+	      var grafico = document.querySelector('#grafico');
 	      var filterInput;
 	      
 	      for (i = 0; i < document.querySelectorAll('paper-input').length; i++) { 
 	    	  	if('filter' == document.querySelectorAll('paper-input')[i].id){
 	    	  		filterInput = document.querySelectorAll('paper-input')[i];
-	    	  	}
+	    	  	} 
 	    	}
 	      var users = [];
 
-	      getJSON('cotacoes.json', function(json) {
+	      getJSON('http://localhost:8080/br.furb.consultor-backend/consultor/cotacao/historico', function(json) {
 	        users = JSON.parse(json).result;
 	        grid.items = users;
+	        
+	        var cotacoes = [];
+	    	  
+	        for (i = 0; i < users.length; i++) { 
+	        	var indice = null;
+	        	for (j = 0; j < cotacoes.length; j++) {
+	        		if(cotacoes[j].name == users[i].codigo){
+	        			indice = j;
+	        		}
+	        	}
+	        	
+	        	if(indice == null){
+	        		var cotacao = new Object(); 
+		    		cotacao.data = [];
+		    		
+		    		cotacao.name = users[i].codigo;
+		    		
+		    		var data = [];
+		    		data[0] = new Date(users[i].dia[0], users[i].dia[1], users[i].dia[2], users[i].hora.split(":")[0], users[i].hora.split(":")[1], 0, 0).getTime();
+		    		data[1] = users[i].preco;
+		    		cotacao.data[0] = data;
+		    		
+		    		cotacoes[cotacoes.length] = cotacao;
+	        	}else{
+	        		var cotacao = cotacoes[indice];
+	        		
+	        		var data = [];
+		    		data[0] = new Date(users[i].dia[0], users[i].dia[1], users[i].dia[2], users[i].hora.split(":")[0], users[i].hora.split(":")[1], 0, 0).getTime();
+		    		data[1] = users[i].preco;
+		    		cotacao.data[cotacao.data.length] = data;
+	        	}
+	        }
+	        
+	        $(function () {
+	            $('#container').highcharts({
+	                chart: {
+	                    type: 'spline'
+	                },
+	                title: {
+	                    text: 'Gr\u00e1fico Valor A\u00e7\u00f5es por tempo'
+	                },
+	                xAxis: {
+	                    type: 'datetime',
+	                    dateTimeLabelFormats: { // don't display the dummy year
+	                        month: '%e. %b',
+	                        year: '%b'
+	                    },
+	                    title: {
+	                        text: 'Date'
+	                    }
+	                },
+	                yAxis: {
+	                    title: {
+	                        text: ' Valor A\u00e7\u00f5es'
+	                    },
+	                    min: 0
+	                },
+	                tooltip: {
+	                    headerFormat: '<b>{series.name}</b><br>',
+	                    pointFormat: '{point.x:%I:%M %p}: R${point.y:.2f}'
+	                },
+
+	                plotOptions: {
+	                    spline: {
+	                        marker: {
+	                            enabled: true
+	                        }
+	                    }
+	                },
+
+	                series: cotacoes
+	            });
+	        });
 	      });
 
 	      grid.addEventListener('sort-order-changed', function() {
@@ -105,13 +205,18 @@
 	          return res;
 	        });
 	      });
-
+	      
+	      grid.addEventListener("selected-items-changed", function() {
+	    	  grid.selection.selected(function(index) {
+	    		  grafico.src = 'http://chart.finance.yahoo.com/z?s='+users[index].codigo+'&t=6m&q=c&l=on&z=l&a=m01-01-16,&p=e13,e150';
+	    	  });
+	    	});
 	      
 	      filterInput.addEventListener('value-changed', function() {
 	        var filterText = filterInput.value.toLowerCase();
 	        grid.items = users.filter(function(val) {
 	          if (filterText) {
-	            return (val.acao.toLowerCase()).indexOf(filterText) > -1;
+	            return (val.codigo.toLowerCase()).indexOf(filterText) > -1;
 	          } else {
 	            return true;
 	          }
@@ -123,6 +228,7 @@
 	    	 var rawFile = new XMLHttpRequest();
 	         rawFile.overrideMimeType("application/json");
 	         rawFile.open("GET", file, true);
+	         rawFile.setRequestHeader("Authorization", getCookie("token"));
 	         rawFile.onreadystatechange = function() {
 	             if (rawFile.readyState === 4 && rawFile.status == "200") {
 	                 callback(rawFile.responseText);
@@ -130,5 +236,21 @@
 	         }
 	         rawFile.send(null);
 	    }
+	    
+	    function getCookie (cname) {
+	        var name = cname + "=";
+	        var ca = document.cookie.split(';');
+	        for(var i = 0; i < ca.length; i++) {
+	            var c = ca[i];
+	            while (c.charAt(0) == ' ') {
+	                c = c.substring(1);
+	            }
+	            if (c.indexOf(name) == 0) {
+	                return c.substring(name.length, c.length);
+	            }
+	        }
+	        return "";
+	    }
+	    
 	  })();
 </script>
