@@ -104,7 +104,6 @@
 		</vaadin-grid>
 		<br/>
 		<div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
-		<img id="grafico" src=""/>
 	</div>
   </template>
 </dom-module>
@@ -115,7 +114,6 @@
   (function() {
 	    HTMLImports.whenReady(function() {
 	      var grid = document.querySelector('#sort');
-	      var grafico = document.querySelector('#grafico');
 	      var filterInput;
 	      
 	      for (i = 0; i < document.querySelectorAll('paper-input').length; i++) { 
@@ -127,11 +125,11 @@
 
 	      getJSON('http://localhost:8080/br.furb.consultor-backend/consultor/cotacao', function(json) {
 	        users = JSON.parse(json).result;
-	        grid.items = users;
 	        
 	        var cotacoes = [];
 	    	  
 	        for (i = 0; i < users.length; i++) { 
+	        	users[i].data = users[i].data[2] + '/' + users[i].data[1] + '/' +  users[i].data[0];
 	    		var cotacao = new Object(); 
 	    		cotacao.data = [];
 	    		
@@ -140,6 +138,7 @@
 	    		
 	    		cotacoes[i] = cotacao;
 	   		}
+	        grid.items = users;
 	        
 	        $('#container').highcharts({
 		        chart: {
@@ -189,7 +188,6 @@
 	      
 	      grid.addEventListener("selected-items-changed", function() {
 	    	  grid.selection.selected(function(index) {
-	    		  grafico.src = 'http://chart.finance.yahoo.com/z?s='+users[index].codigo+'&t=6m&q=c&l=on&z=l&a=m01-01-16,&p=e13,e150';
 	    	  });
 	    	});
 	      

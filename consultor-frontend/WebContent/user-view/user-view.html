@@ -140,17 +140,17 @@
 	<div class="row">
     		<div class="col-1">
     			<vaadin-combo-box
-    		 		id="tipo_transacao" class="elements-box"
+    		 		id="tipo_transacao"
     		 		label="Perfil de investidor"
-    		 		item-label-path="name" always-float-label
+    		 		item-label-path="name" 
                     item-value-path="id">
 		  		</vaadin-combo-box>
 			</div>
 			<div class="col-1">
     			<vaadin-combo-box
-    		 		id="tipo_operacao" class="elements-box"
+    		 		id="tipo_operacao"
     		 		label="Forma de opera&ccedil;&atilde;o"
-		  			item-label-path="name" always-float-label
+		  			item-label-path="name"
                     item-value-path="id">
 		  		</vaadin-combo-box>
 			</div>
@@ -162,7 +162,7 @@
     	<div class="col-3">
     	    <paper-button raised class="custom red" on-click="cancel"><iron-icon icon="cancel"></iron-icon>Cancelar</paper-button>
 		</div>
-		<paper-toast id="message" duration="0" text="Há campos obrigatórios não preenchidos!">
+		<paper-toast id="message" duration="0" text="H&aacute; campos obrigat&oacute;rios n&atilde;o preenchidos!">
 				<paper-button onclick="message.toggle()" class="yellow-button">Close now!</paper-button>
 		</paper-toast>
 	</div>	
@@ -326,7 +326,7 @@
 	    var profissao = document.querySelector('#prof');
 	    var tipo_transacao = document.querySelector('#tipo_transacao');
 	    var tipo_operacao = document.querySelector('#tipo_operacao');
-
+	    
 	    tipo_transacao.items = elementsTipoTransacao;
 	    tipo_operacao.items = elementsTipoOperacao;
 	    

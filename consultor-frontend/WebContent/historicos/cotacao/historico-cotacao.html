@@ -106,11 +106,12 @@
 
 	      getJSON('http://localhost:8080/br.furb.consultor-backend/consultor/cotacao/historico', function(json) {
 	        users = JSON.parse(json).result;
-	        grid.items = users;
 	        
 	        var cotacoes = [];
 	    	  
 	        for (i = 0; i < users.length; i++) { 
+	        	users[i].dia = users[i].dia[2] + '/' + users[i].dia[1] + '/' +  users[i].dia[0];
+	        	
 	        	var indice = null;
 	        	for (j = 0; j < cotacoes.length; j++) {
 	        		if(cotacoes[j].name == users[i].codigo){
@@ -139,6 +140,7 @@
 		    		cotacao.data[cotacao.data.length] = data;
 	        	}
 	        }
+	        grid.items = users;
 	        
 	        $(function () {
 	            $('#container').highcharts({

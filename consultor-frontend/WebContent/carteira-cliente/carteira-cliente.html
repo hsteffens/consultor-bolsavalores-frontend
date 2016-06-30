@@ -1,6 +1,8 @@
+<script src="../bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/vaadin-grid/vaadin-grid.html">
 <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../bower_components/highcharts-chart/highcharts-chart.html">
 
 <dom-module id="carteira-cliente">
 	<template id="carteira-cliente">
@@ -91,6 +93,7 @@
 		<paper-toast id="message" duration="0" text="Há campos obrigatórios não preenchidos!">
 				<paper-button onclick="message.toggle()" class="yellow-button">Close now!</paper-button>
 		</paper-toast>
+		<div id="container" style="min-width: 310px; height: 400px; max-width: 600px; margin: 0 auto"></div>
 	</div>
 	</template>
 </dom-module>
@@ -130,6 +133,50 @@
 	        	             if (consulta.readyState === 4 && consulta.status == "200") {
 	        	            	 var items = JSON.parse(consulta.responseText).result;
 	     	    		         grid.items = items;
+	     	    		         
+	     	    		        var carteiras = [];
+	     	    		        var carteira = new Object();
+	     	    		        carteira.name = 'Quantidade';
+	     	    		        carteira.colorByPoint = true;
+	     	    		        
+	     	    		        carteira.data = [];
+	     	    		        
+	     	    		        for (i = 0; i < items.length; i++) {
+	     	    		        	var data = new Object();
+	     	    		        	data.name = items[i].acao;
+	     	    		        	data.y = items[i].quant;
+	     	    					data.x = items[i].preco;
+	     	    		        	carteira.data[i] = data;
+	     	    		        }
+	     	    		        
+	     	    		        carteiras[0] = carteira;
+	     	    		        
+	     	    		        // Build the chart
+	     	    		        $('#container').highcharts({
+	     	    		            chart: {
+	     	    		                plotBackgroundColor: null,
+	     	    		                plotBorderWidth: null,
+	     	    		                plotShadow: false,
+	     	    		                type: 'pie'
+	     	    		            },
+	     	    		            title: {
+	     	    		                text: 'Gr\u00e1fico quantidade de ações na carteira do cliente'
+	     	    		            },
+	     	    		            tooltip: {
+	     	    		                pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b><br> Pre\u00e7o: <b>{point.x}</b>'
+	     	    		            },
+	     	    		            plotOptions: {
+	     	    		                pie: {
+	     	    		                    allowPointSelect: true,
+	     	    		                    cursor: 'pointer',
+	     	    		                    dataLabels: {
+	     	    		                        enabled: false
+	     	    		                    },
+	     	    		                    showInLegend: true
+	     	    		                }
+	     	    		            },
+	     	    		            series: carteiras
+	     	    		        });
 	        	             }
 	        	         }
 	            		 
@@ -171,6 +218,50 @@
       getJSON('http://localhost:8080/br.furb.consultor-backend/consultor/carteira-cliente', function(json) {
         users = JSON.parse(json).result;
         grid.items = users;
+        
+        var carteiras = [];
+        var carteira = new Object();
+        carteira.name = 'Quantidade';
+        carteira.colorByPoint = true;
+        
+        carteira.data = [];
+        
+        for (i = 0; i < users.length; i++) {
+        	var data = new Object();
+        	data.name = users[i].acao;
+        	data.y = users[i].quant;
+			data.x = users[i].preco;
+        	carteira.data[i] = data;
+        }
+        
+        carteiras[0] = carteira;
+        
+        // Build the chart
+        $('#container').highcharts({
+            chart: {
+                plotBackgroundColor: null,
+                plotBorderWidth: null,
+                plotShadow: false,
+                type: 'pie'
+            },
+            title: {
+                text: 'Gr\u00e1fico quantidade de a\u00e7\u00f5es na carteira do cliente'
+            },
+            tooltip: {
+                pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b><br> Pre\u00e7o: <b>{point.x}</b>'
+            },
+            plotOptions: {
+                pie: {
+                    allowPointSelect: true,
+                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: false
+                    },
+                    showInLegend: true
+                }
+            },
+            series: carteiras
+        });
       });
 
       grid.addEventListener('sort-order-changed', function() {
